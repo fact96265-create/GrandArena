@@ -1,0 +1,16 @@
+body {
+  background: #0d0d0d;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+  padding-top: 100px;
+}
+
+button {
+  background: linear-gradient(90deg, #00f, #8000ff);
+  border: none;
+  padding: 15px 30px;
+  color: white;
+  font-size: 18px;
+  border-radius: 8px;
+}

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel – Grand Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      background:#0d0d0d;
+      color:#fff;
+      font-family: Arial, sans-serif;
+      padding: 15px;
+    }
+    h1, h2 {
+      color:#6cf;
+    }
+    .card {
+      background:#1c1c1c;
+      padding:15px;
+      border-radius:10px;
+      margin-bottom:15px;
+    }
+    button {
+      padding:8px 14px;
+      border:none;
+      border-radius:6px;
+      font-weight:bold;
+      cursor:pointer;
+      margin-top:8px;
+    }
+    .approve { background:#2ecc71; }
+    .reject { background:#e74c3c; }
+  </style>
+</head>
+
+<body>
+
+<h1>🛠️ GRAND ARENA – ADMIN PANEL</h1>
+
+<div class="card">
+  <h2>➕ Add Money Requests</h2>
+  <div id="addMoneyList">Loading...</div>
+</div>
+
+<div class="card">
+  <h2>➖ Withdraw Requests</h2>
+  <div id="withdrawList">Loading...</div>
+</div>
+
+<!-- SUPABASE -->
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  // 🔐 SUPABASE DETAILS
+  const supabaseUrl = "https://hnpjwuhcekiecxpvsjyg.supabase.co";
+  const supabaseAnonKey =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhucGp3dWhjZWtpZWN4cHZzanlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwOTMxNTgsImV4cCI6MjA4MjY2OTE1OH0.Nd3K-MdP6JTm0ePmMR94-Ie7lsbjuQBjoceykGhyYbw";
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  // ================= ADMIN CHECK =================
+  async function checkAdmin() {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      alert("Login required");
+      location.href = "index.html";
+      return;
+    }
+
+    const { data: userRow } = await supabase
+      .from("users")
+      .select("isadmin")
+      .eq("uid", data.user.id)
+      .single();
+
+    if (!userRow || userRow.isadmin !== true) {
+      alert("Admin access only ❌");
+      location.href = "index.html";
+    }
+  }
+  checkAdmin();
+
+  // ================= LOAD ADD MONEY =================
+  async function loadAddMoney() {
+    const { data } = await supabase
+      .from("add_money_requests")
+      .select("*")
+      .eq("status", "pending");
+
+    let html = "";
+    if (data && data.length > 0) {
+      data.forEach(r => {
+        html += `
+          <div class="card">
+            <p><b>User:</b> ${r.uid}</p>
+            <p><b>Amount:</b> ₹${r.amount}</p>
+            <p><b>UTR:</b> ${r.utr}</p>
+            <button class="approve" onclick="approveAdd('${r.id}','${r.uid}',${r.amount})">
+              Approve
+            </button>
+          </div>
+        `;
+      });
+    } else {
+      html = "No pending requests";
+    }
+
+    document.getElementById("addMoneyList").innerHTML = html;
+  }
+
+  // ================= APPROVE ADD MONEY =================
+  async function approveAdd(id, uid, amount) {
+    await supabase.rpc("increment_wallet", {
+      userid: uid,
+      amt: amount
+    });
+
+    await supabase
+      .from("add_money_requests")
+      .update({ status: "approved" })
+      .eq("id", id);
+
+    alert("Add Money Approved ✅");
+    loadAddMoney();
+  }
+
+  // ================= LOAD WITHDRAW =================
+  async function loadWithdraw() {
+    const { data } = await supabase
+      .from("withdraw_requests")
+      .select("*")
+      .eq("status", "pending");
+
+    let html = "";
+    if (data && data.length > 0) {
+      data.forEach(w => {
+        html += `
+          <div class="card">
+            <p><b>User:</b> ${w.uid}</p>
+            <p><b>Amount:</b> ₹${w.amount}</p>
+            <p><b>Final:</b> ₹${w.final_amount}</p>
+            <p><b>UPI:</b> ${w.upi}</p>
+            <button class="approve" onclick="approveWithdraw('${w.id}','${w.uid}',${w.amount})">
+              Mark Paid
+            </button>
+          </div>
+        `;
+      });
+    } else {
+      html = "No pending withdraws";
+    }
+
+    document.getElementById("withdrawList").innerHTML = html;
+  }
+
+  // ================= APPROVE WITHDRAW =================
+  async function approveWithdraw(id, uid, amount) {
+    await supabase.rpc("decrement_winbalance", {
+      userid: uid,
+      amt: amount
+    });
+
+    await supabase
+      .from("withdraw_requests")
+      .update({ status: "completed" })
+      .eq("id", id);
+
+    alert("Withdraw Completed ✅");
+    loadWithdraw();
+  }
+
+  // expose to buttons
+  window.approveAdd = approveAdd;
+  window.approveWithdraw = approveWithdraw;
+
+  loadAddMoney();
+  loadWithdraw();
+</script>
+
+</body>
+</html>

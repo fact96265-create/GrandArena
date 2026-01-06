@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="signup()">Signup</button>
+<button onclick="login()">Login</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="app.js"></script>
+
+<script>
+async function signup() {
+  const { data, error } = await supabase.auth.signUp({
+    email: email.value,
+    password: password.value
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  const user = data.user;
+
+  // users table me insert
+  await supabase.from("users").insert({
+    uid: user.id,
+    walletBalance: 0,
+    winBalance: 0,
+    isAdmin: false
+  });
+
+  alert("Account created");
+}
+
+async function login() {
+  await supabase.auth.signInWithPassword({
+    email: email.value,
+    password: password.value
+  });
+  window.location = "dashboard.html";
+}
+</script>
+
+</body>
+</html>
