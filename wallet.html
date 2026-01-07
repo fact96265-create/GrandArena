@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wallet | Grand Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>💼 My Wallet</h2>
+    <p style="font-size:14px;opacity:0.8">
+      Secure & Fast Transactions
+    </p>
+  </div>
+
+  <div class="container">
+
+    <!-- BALANCE CARD -->
+    <div class="card">
+      <h3>Available Balance</h3>
+      <h1 id="balance">₹0.00</h1>
+      <p style="font-size:13px;opacity:0.7">
+        Withdrawal fee ₹2.7 per request
+      </p>
+    </div>
+
+    <!-- ADD MONEY -->
+    <div class="card">
+      <h3>➕ Add Money</h3>
+
+      <input type="number" id="addAmount" placeholder="Enter amount (Min ₹20)">
+      <button onclick="addMoney()">Add Money</button>
+
+      <p style="font-size:13px;margin-top:8px">
+        Payment UPI: <b>dipanshuhb45@okhdfcbank</b>
+      </p>
+    </div>
+
+    <!-- WITHDRAW -->
+    <div class="card">
+      <h3>➖ Withdraw Money</h3>
+
+      <input type="number" id="withdrawAmount" placeholder="Enter amount (Min ₹10)">
+      <button onclick="withdrawMoney()">Withdraw</button>
+
+      <p style="font-size:13px;margin-top:8px;line-height:1.6">
+        ✔ Min withdraw ₹10<br>
+        ✔ ₹2.7 fee deducted<br>
+        ✔ Manual approval (safe)
+      </p>
+    </div>
+
+    <!-- TRANSACTION INFO -->
+    <div class="card" style="font-size:13px;line-height:1.7">
+      <b>Important:</b><br>
+      • Fake payment = permanent ban<br>
+      • Withdraw processed within 24 hrs<br>
+      • One wallet per user
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card" style="text-align:center;font-size:13px">
+      <a href="index.html">🏠 Home</a> |
+      <a href="support.html">24×7 Support</a>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="js/supabase.js"></script>
+
+  <script>
+    let currentBalance = 0;
+
+    async function loadBalance() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const { data } = await supabase
+        .from("wallets")
+        .select("balance")
+        .eq("user_id", user.id)
+        .single();
+
+      currentBalance = data ? data.balance : 0;
+      document.getElementById("balance").innerText = "₹" + currentBalance.toFixed(2);
+    }
+
+    async function addMoney() {
+      const amount = Number(document.getElementById("addAmount").value);
+      if (amount < 20) {
+        alert("Minimum add amount is ₹20");
+        return;
+      }
+
+      alert("Pay ₹" + amount + " on UPI and wait for admin approval.");
+
+      await supabase.from("transactions").insert([{
+        amount: amount,
+        type: "add",
+        status: "pending"
+      }]);
+    }
+
+    async function withdrawMoney() {
+      const amount = Number(document.getElementById("withdrawAmount").value);
+      const fee = 2.7;
+      const total = amount + fee;
+
+      if (amount < 10) {
+        alert("Minimum withdraw is ₹10");
+        return;
+      }
+
+      if (total > currentBalance) {
+        alert("Insufficient balance (including fee)");
+        return;
+      }
+
+      alert("Withdraw request submitted. ₹2.7 fee applied.");
+
+      await supabase.from("transactions").insert([{
+        amount: amount,
+        fee: fee,
+        type: "withdraw",
+        status: "pending"
+      }]);
+    }
+
+    loadBalance();
+  </script>
+
+</body>
+</html>

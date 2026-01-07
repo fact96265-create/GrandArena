@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Tournament | Grand Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>➕ Create Tournament</h2>
+    <p style="font-size:14px;opacity:0.8">
+      Host your own match & earn
+    </p>
+  </div>
+
+  <div class="container">
+
+    <!-- CREATE FORM -->
+    <div class="card">
+      <h3>Tournament Details</h3>
+
+      <input type="text" id="title" placeholder="Tournament Name">
+
+      <select id="game">
+        <option value="">Select Game</option>
+        <option>Free Fire</option>
+        <option>BGMI</option>
+        <option>COD Mobile</option>
+      </select>
+
+      <input type="number" id="entryFee" placeholder="Entry Fee (₹)">
+      <input type="number" id="maxPlayers" placeholder="Max Players">
+
+      <input type="datetime-local" id="startTime">
+
+      <textarea id="rules" placeholder="Tournament Rules"></textarea>
+
+      <button onclick="createTournament()">Create Tournament</button>
+
+      <p style="font-size:13px;margin-top:10px;line-height:1.6">
+        ✔ 20% platform fee<br>
+        ✔ Fake tournament = permanent ban
+      </p>
+    </div>
+
+    <!-- CALCULATION -->
+    <div class="card">
+      <h3>💰 Earnings Breakdown</h3>
+      <p id="calcText">Enter details to see calculation</p>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card" style="text-align:center;font-size:13px">
+      <a href="index.html">🏠 Home</a> |
+      <a href="tournaments.html">🏆 Tournaments</a> |
+      <a href="wallet.html">💼 Wallet</a>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="js/supabase.js"></script>
+
+  <script>
+    const entryInput = document.getElementById("entryFee");
+    const playersInput = document.getElementById("maxPlayers");
+    const calcText = document.getElementById("calcText");
+
+    function updateCalc() {
+      const fee = Number(entryInput.value);
+      const players = Number(playersInput.value);
+
+      if (fee > 0 && players > 1) {
+        const total = fee * players;
+        const admin = total * 0.20;
+        const prize = total * 0.80;
+
+        calcText.innerHTML = `
+          Total Collection: ₹${total}<br>
+          Admin Fee (20%): ₹${admin}<br>
+          Winner Prize (80%): ₹${prize}
+        `;
+      } else {
+        calcText.innerText = "Enter valid entry fee & players";
+      }
+    }
+
+    entryInput.addEventListener("input", updateCalc);
+    playersInput.addEventListener("input", updateCalc);
+
+    async function createTournament() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert("Please login first");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const title = document.getElementById("title").value;
+      const game = document.getElementById("game").value;
+      const entryFee = Number(entryInput.value);
+      const maxPlayers = Number(playersInput.value);
+      const startTime = document.getElementById("startTime").value;
+      const rules = document.getElementById("rules").value;
+
+      if (!title || !game || entryFee <= 0 || maxPlayers <= 1 || !startTime) {
+        alert("Fill all fields correctly");
+        return;
+      }
+
+      const total = entryFee * maxPlayers;
+
+      await supabase.from("tournaments").insert([{
+        created_by: user.id,
+        title: title,
+        game: game,
+        entry_fee: entryFee,
+        max_players: maxPlayers,
+        joined_players: 0,
+        prize_pool: total * 0.80,
+        admin_cut: total * 0.20,
+        rules: rules,
+        start_time: startTime,
+        status: "open"
+      }]);
+
+      alert("Tournament created successfully");
+      window.location.href = "tournaments.html";
+    }
+  </script>
+
+</body>
+</html>

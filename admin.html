@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Grand Arena Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #121212;
+        color: white;
+    }
+    header {
+        background: #1a1a1a;
+        padding: 15px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        border-bottom: 2px solid #333;
+    }
+    .section {
+        padding: 15px;
+        border-bottom: 1px solid #333;
+    }
+    h2 { margin-bottom: 10px; }
+    .card {
+        background: #1e1e1e;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #333;
+    }
+    button {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-right: 10px;
+        margin-top: 5px;
+    }
+    .approve { background: green; color: white; }
+    .reject { background: red; color: white; }
+    .refresh { background: dodgerblue; color:white; }
+    input, textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 5px;
+        background: #222;
+        color: white;
+        border: 1px solid #444;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>Grand Arena - Admin Dashboard</header>
+
+<!-- WITHDRAW REQUESTS -->
+<div class="section">
+  <h2>Withdraw Requests</h2>
+  <button class="refresh" onclick="loadWithdrawals()">Refresh</button>
+  <div id="withdrawContainer"></div>
+</div>
+
+<!-- TOURNAMENTS -->
+<div class="section">
+  <h2>Tournaments List</h2>
+  <button class="refresh" onclick="loadTournaments()">Refresh</button>
+  <div id="tournamentContainer"></div>
+</div>
+
+<!-- USERS LIST -->
+<div class="section">
+  <h2>Users List</h2>
+  <button class="refresh" onclick="loadUsers()">Refresh</button>
+  <div id="usersContainer"></div>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="section">
+  <h2>Transactions</h2>
+  <button class="refresh" onclick="loadTransactions()">Refresh</button>
+  <div id="transactionsContainer"></div>
+</div>
+
+<!-- SEND NOTIFICATION -->
+<div class="section">
+  <h2>Send Notification</h2>
+  <input type="text" id="notifyTitle" placeholder="Notification Title">
+  <textarea id="notifyMsg" rows="3" placeholder="Notification Message"></textarea>
+  <button onclick="sendNotification()">Send</button>
+</div>
+
+<script>
+const API = "http://localhost:3000"; 
+const ADMIN_KEY = "SUPER_ADMIN_KEY_786";
+
+// LOAD WITHDRAW REQUESTS
+async function loadWithdrawals() {
+    const res = await fetch(API + "/admin/withdrawals", {
+        headers: { "x-admin-key": ADMIN_KEY }
+    });
+
+    const data = await res.json();
+    const box = document.getElementById("withdrawContainer");
+    box.innerHTML = "";
+
+    data.data.forEach(w => {
+        box.innerHTML += `
+          <div class="card">
+            <b>User:</b> ${w.user_id}<br>
+            <b>Amount:</b> ₹${w.amount}<br>
+            <b>UPI:</b> ${w.upi_id}<br>
+            <b>Status:</b> ${w.status}<br>
+            <button class="approve" onclick="approveWithdraw('${w.id}')">Approve</button>
+            <button class="reject" onclick="rejectWithdraw('${w.id}', '${w.user_id}', '${w.amount}')">Reject</button>
+          </div>
+        `;
+    });
+}
+
+// APPROVE WITHDRAW
+async function approveWithdraw(id) {
+    await fetch(API + "/admin/withdraw/approve", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": ADMIN_KEY
+        },
+        body: JSON.stringify({ id })
+    });
+    loadWithdrawals();
+}
+
+// REJECT WITH REFUND
+async function rejectWithdraw(id, user_id, amount) {
+    await fetch(API + "/admin/withdraw/reject", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": ADMIN_KEY
+        },
+        body: JSON.stringify({ id, user_id, amount })
+    });
+    loadWithdrawals();
+}
+
+// LOAD TOURNAMENTS
+async function loadTournaments() {
+    const res = await fetch(API + "/tournaments");
+    const data = await res.json();
+
+    const box = document.getElementById("tournamentContainer");
+    box.innerHTML = "";
+
+    data.tournaments.forEach(t => {
+        box.innerHTML += `
+          <div class="card">
+            <b>${t.title}</b><br>
+            Entry: ₹${t.entry_fee} <br>
+            Prize: ₹${t.prize} <br>
+            Status: ${t.status}
+          </div>
+        `;
+    });
+}
+
+// LOAD USERS
+async function loadUsers() {
+    const res = await fetch(API + "/admin/users", {
+        headers: { "x-admin-key": ADMIN_KEY }
+    });
+
+    const data = await res.json();
+    const box = document.getElementById("usersContainer");
+    box.innerHTML = "";
+
+    data.users.forEach(u => {
+        box.innerHTML += `
+          <div class="card">
+            <b>${u.username}</b><br>
+            Wallet: ₹${u.wallet_balance}<br>
+            Winnings: ₹${u.winning_balance}
+          </div>
+        `;
+    });
+}
+
+// LOAD TRANSACTIONS
+async function loadTransactions() {
+    const res = await fetch(API + "/admin/transactions", {
+        headers: { "x-admin-key": ADMIN_KEY }
+    });
+
+    const data = await res.json();
+    const box = document.getElementById("transactionsContainer");
+    box.innerHTML = "";
+
+    data.transactions.forEach(t => {
+        box.innerHTML += `
+          <div class="card">
+            <b>User:</b> ${t.user_id} <br>
+            <b>Amount:</b> ₹${t.amount} <br>
+            <b>Type:</b> ${t.type} <br>
+            ${t.timestamp}
+          </div>
+        `;
+    });
+}
+
+// SEND NOTIFICATION
+async function sendNotification() {
+    const title = document.getElementById("notifyTitle").value;
+    const msg = document.getElementById("notifyMsg").value;
+
+    await fetch(API + "/admin/notify", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": ADMIN_KEY
+        },
+        body: JSON.stringify({ title, message: msg })
+    });
+
+    alert("Notification sent!");
+}
+</script>
+
+</body>
+</html>

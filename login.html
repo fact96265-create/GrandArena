@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login | Grand Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- SEO -->
+  <meta name="description" content="Login to Grand Arena - Skill Based Gaming Platform">
+  <meta name="author" content="Grand Arena">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>🔐 Login</h2>
+    <p style="font-size:14px;opacity:0.8">Welcome back to Grand Arena</p>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div class="container">
+
+    <div class="card">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="Enter your email">
+
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter your password">
+
+      <button onclick="login()">Login</button>
+
+      <p style="text-align:center;font-size:14px;margin-top:10px">
+        Don’t have an account?
+        <a href="signup.html">Create Account</a>
+      </p>
+    </div>
+
+    <!-- INFO -->
+    <div class="card">
+      <p style="font-size:13px;line-height:1.6">
+        ✔ Skill-based gaming platform<br>
+        ✔ Secure login with encryption<br>
+        ❌ Under 18 not allowed
+      </p>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card" style="text-align:center;font-size:13px">
+      <a href="index.html">🏠 Home</a> |
+      <a href="terms.html">Terms</a> |
+      <a href="privacy.html">Privacy</a>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+
+</body>
+</html>

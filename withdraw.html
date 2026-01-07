@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Withdraw | Grand Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>➖ Withdraw Money</h2>
+    <p style="font-size:14px;opacity:0.8">
+      Fast & Secure Withdrawal
+    </p>
+  </div>
+
+  <div class="container">
+
+    <!-- BALANCE -->
+    <div class="card">
+      <h3>Available Balance</h3>
+      <h1 id="balance">₹0.00</h1>
+      <p style="font-size:13px;opacity:0.7">
+        Withdrawal fee: ₹2.7 (flat)
+      </p>
+    </div>
+
+    <!-- WITHDRAW FORM -->
+    <div class="card">
+      <h3>Withdraw Request</h3>
+
+      <input type="number" id="amount" placeholder="Enter amount (Min ₹10)">
+      <input type="text" id="upi" placeholder="Enter your UPI ID">
+
+      <button onclick="submitWithdraw()">Submit Withdraw</button>
+
+      <p style="font-size:13px;margin-top:10px;line-height:1.6">
+        ✔ Minimum withdraw ₹10<br>
+        ✔ ₹2.7 fee deducted<br>
+        ✔ Processed within 24 hours
+      </p>
+    </div>
+
+    <!-- INFO -->
+    <div class="card" style="font-size:13px;line-height:1.7">
+      <b>Important:</b><br>
+      • Wrong UPI = failed payout<br>
+      • Fake requests = permanent ban<br>
+      • One withdrawal at a time
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card" style="text-align:center;font-size:13px">
+      <a href="index.html">🏠 Home</a> |
+      <a href="wallet.html">💼 Wallet</a> |
+      <a href="support.html">24×7 Support</a>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="js/supabase.js"></script>
+
+  <script>
+    let currentBalance = 0;
+    const FEE = 2.7;
+
+    async function loadBalance() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const { data } = await supabase
+        .from("wallets")
+        .select("balance")
+        .eq("user_id", user.id)
+        .single();
+
+      currentBalance = data ? Number(data.balance) : 0;
+      document.getElementById("balance").innerText = "₹" + currentBalance.toFixed(2);
+    }
+
+    async function submitWithdraw() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert("Login required");
+        return;
+      }
+
+      const amount = Number(document.getElementById("amount").value);
+      const upi = document.getElementById("upi").value.trim();
+
+      if (amount < 10) {
+        alert("Minimum withdraw amount is ₹10");
+        return;
+      }
+      if (!upi) {
+        alert("Please enter a valid UPI ID");
+        return;
+      }
+
+      const totalDebit = amount + FEE;
+      if (totalDebit > currentBalance) {
+        alert("Insufficient balance (including ₹2.7 fee)");
+        return;
+      }
+
+      // Create pending withdrawal request (admin will approve)
+      await supabase.from("withdrawals").insert([{
+        user_id: user.id,
+        amount: amount,
+        fee: FEE,
+        upi_id: upi,
+        status: "pending"
+      }]);
+
+      alert("Withdraw request submitted. Processing within 24 hours.");
+      document.getElementById("amount").value = "";
+      document.getElementById("upi").value = "";
+    }
+
+    loadBalance();
+  </script>
+
+</body>
+</html>

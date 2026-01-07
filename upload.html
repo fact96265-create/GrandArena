@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Result | Grand Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>📤 Upload Match Result</h2>
+    <p style="font-size:14px;opacity:0.8">
+      Upload screenshot for verification
+    </p>
+  </div>
+
+  <div class="container">
+
+    <!-- UPLOAD CARD -->
+    <div class="card">
+      <h3>Result Details</h3>
+
+      <select id="tournament">
+        <option value="">Select Tournament</option>
+      </select>
+
+      <input type="text" id="position" placeholder="Your Position (e.g. 1st, Winner)">
+
+      <input type="file" id="screenshot" accept="image/*">
+
+      <button onclick="uploadResult()">Upload Result</button>
+
+      <p style="font-size:13px;margin-top:10px;line-height:1.6">
+        ✔ Clear screenshot only<br>
+        ✔ Fake result = permanent ban<br>
+        ✔ Admin approval required
+      </p>
+    </div>
+
+    <!-- STATUS -->
+    <div class="card" id="statusCard" style="display:none">
+      <p id="statusText"></p>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card" style="text-align:center;font-size:13px">
+      <a href="index.html">🏠 Home</a> |
+      <a href="tournaments.html">🏆 Tournaments</a> |
+      <a href="support.html">24×7 Support</a>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="js/supabase.js"></script>
+
+  <script>
+    const tournamentSelect = document.getElementById("tournament");
+    const statusCard = document.getElementById("statusCard");
+    const statusText = document.getElementById("statusText");
+
+    async function loadUserTournaments() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const { data } = await supabase
+        .from("tournament_joins")
+        .select("tournament_id, tournaments(title)")
+        .eq("user_id", user.id)
+        .eq("status", "approved");
+
+      if (data) {
+        data.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t.tournament_id;
+          opt.textContent = t.tournaments.title;
+          tournamentSelect.appendChild(opt);
+        });
+      }
+    }
+
+    async function uploadResult() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert("Login required");
+        return;
+      }
+
+      const tournamentId = tournamentSelect.value;
+      const position = document.getElementById("position").value;
+      const file = document.getElementById("screenshot").files[0];
+
+      if (!tournamentId || !position || !file) {
+        alert("Please fill all fields");
+        return;
+      }
+
+      const filePath = `${user.id}/${Date.now()}_${file.name}`;
+
+      const { error: uploadError } = await supabase
+        .storage
+        .from("results")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        alert("Upload failed");
+        return;
+      }
+
+      const { data: urlData } = supabase
+        .storage
+        .from("results")
+        .getPublicUrl(filePath);
+
+      await supabase.from("results").insert([{
+        user_id: user.id,
+        tournament_id: tournamentId,
+        position: position,
+        screenshot_url: urlData.publicUrl,
+        status: "pending"
+      }]);
+
+      statusCard.style.display = "block";
+      statusText.innerText = "✅ Result uploaded. Waiting for admin approval.";
+    }
+
+    loadUserTournaments();
+  </script>
+
+</body>
+</html>

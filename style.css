@@ -1,0 +1,273 @@
+/* =========================
+   GLOBAL RESET
+========================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #0f172a;
+  color: #e5e7eb;
+  min-height: 100vh;
+}
+
+/* =========================
+   LINKS
+========================= */
+a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   HEADER
+========================= */
+.header {
+  background: linear-gradient(135deg, #1e293b, #020617);
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid #334155;
+}
+
+.header h1,
+.header h2 {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.header p {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* =========================
+   CONTAINER
+========================= */
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 15px;
+}
+
+/* =========================
+   CARD
+========================= */
+.card {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+.card h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #f8fafc;
+}
+
+/* =========================
+   TEXT
+========================= */
+p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+button {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #020617;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 6px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button.danger {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: white;
+}
+
+button.secondary {
+  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  color: #020617;
+}
+
+/* Admin small buttons */
+.admin-btn {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+/* =========================
+   INPUTS & SELECT
+========================= */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #020617;
+  color: #f8fafc;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #38bdf8;
+}
+
+/* =========================
+   FORMS
+========================= */
+.form-group {
+  margin-bottom: 12px;
+}
+
+label {
+  font-size: 13px;
+  margin-bottom: 4px;
+  display: block;
+  color: #cbd5f5;
+}
+
+/* =========================
+   WALLET BOX
+========================= */
+.wallet-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.balance {
+  font-size: 22px;
+  font-weight: bold;
+  color: #22c55e;
+}
+
+/* =========================
+   STATUS BADGES
+========================= */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.badge.pending {
+  background: #facc15;
+  color: #020617;
+}
+
+.badge.approved {
+  background: #22c55e;
+  color: #020617;
+}
+
+.badge.rejected {
+  background: #ef4444;
+  color: white;
+}
+
+/* =========================
+   LIST ITEMS
+========================= */
+.list-item {
+  border-bottom: 1px solid #1e293b;
+  padding: 8px 0;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+/* =========================
+   NAVIGATION (FOOTER)
+========================= */
+.footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #020617;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+}
+
+.footer-nav a {
+  font-size: 12px;
+  color: #cbd5f5;
+}
+
+.footer-nav a.active {
+  color: #38bdf8;
+  font-weight: bold;
+}
+
+/* =========================
+   NOTIFICATIONS
+========================= */
+.notification {
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  background: #020617;
+  border-left: 4px solid #38bdf8;
+}
+
+.notification.alert {
+  border-left-color: #ef4444;
+}
+
+.notification.wallet {
+  border-left-color: #22c55e;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (min-width: 768px) {
+  .header h1,
+  .header h2 {
+    font-size: 24px;
+  }
+
+  .container {
+    padding: 20px;
+  }
+}

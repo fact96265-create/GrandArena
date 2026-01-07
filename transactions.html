@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Transactions | Grand Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>📊 Transactions</h2>
+    <p style="font-size:14px;opacity:0.8">
+      Complete transaction history
+    </p>
+  </div>
+
+  <div class="container">
+
+    <!-- TRANSACTION LIST -->
+    <div class="card">
+      <h3>My Transactions</h3>
+      <div id="txList">Loading...</div>
+    </div>
+
+    <!-- INFO -->
+    <div class="card" style="font-size:13px;line-height:1.7">
+      <b>Legend:</b><br>
+      ➕ Add Money<br>
+      ➖ Withdraw<br>
+      🏆 Tournament Entry / Prize<br>
+      ⏳ Pending | ✅ Approved | ❌ Rejected
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card" style="text-align:center;font-size:13px">
+      <a href="index.html">🏠 Home</a> |
+      <a href="wallet.html">💼 Wallet</a> |
+      <a href="support.html">24×7 Support</a>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="js/supabase.js"></script>
+
+  <script>
+    const txList = document.getElementById("txList");
+
+    async function loadTransactions() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        txList.innerHTML = "<p>No transactions found</p>";
+        return;
+      }
+
+      txList.innerHTML = "";
+
+      data.forEach(tx => {
+        let sign = "➕";
+        if (tx.type === "withdraw") sign = "➖";
+        if (tx.type === "tournament") sign = "🏆";
+
+        let statusColor = "#999";
+        if (tx.status === "approved") statusColor = "green";
+        if (tx.status === "rejected") statusColor = "red";
+
+        txList.innerHTML += `
+          <div class="card" style="margin-top:10px">
+            <b>${sign} ₹${tx.amount}</b><br>
+            Type: ${tx.type}<br>
+            Status: <span style="color:${statusColor}">
+              ${tx.status}
+            </span><br>
+            ${tx.fee ? `Fee: ₹${tx.fee}<br>` : ""}
+            <span style="font-size:12px;opacity:0.7">
+              ${new Date(tx.created_at).toLocaleString()}
+            </span>
+          </div>
+        `;
+      });
+    }
+
+    loadTransactions();
+  </script>
+
+</body>
+</html>

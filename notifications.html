@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notifications | Grand Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>🔔 Notifications</h2>
+    <p style="font-size:14px;opacity:0.8">
+      Stay updated with all activities
+    </p>
+  </div>
+
+  <div class="container">
+
+    <!-- NOTIFICATION LIST -->
+    <div class="card">
+      <h3>My Notifications</h3>
+      <div id="notifyList">Loading...</div>
+    </div>
+
+    <!-- INFO -->
+    <div class="card" style="font-size:13px;line-height:1.7">
+      <b>Types:</b><br>
+      💰 Wallet / Payment<br>
+      🏆 Tournament updates<br>
+      📤 Result verification<br>
+      ❗ Important alerts
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card" style="text-align:center;font-size:13px">
+      <a href="index.html">🏠 Home</a> |
+      <a href="wallet.html">💼 Wallet</a> |
+      <a href="transactions.html">📊 Transactions</a> |
+      <a href="support.html">24×7 Support</a>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="js/supabase.js"></script>
+
+  <script>
+    const notifyList = document.getElementById("notifyList");
+
+    async function loadNotifications() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        notifyList.innerHTML = "<p>No notifications yet</p>";
+        return;
+      }
+
+      notifyList.innerHTML = "";
+
+      data.forEach(n => {
+        let icon = "🔔";
+        if (n.type === "wallet") icon = "💰";
+        if (n.type === "tournament") icon = "🏆";
+        if (n.type === "result") icon = "📤";
+        if (n.type === "alert") icon = "❗";
+
+        notifyList.innerHTML += `
+          <div class="card" style="margin-top:10px">
+            <b>${icon} ${n.title}</b><br>
+            <span style="font-size:14px">
+              ${n.message}
+            </span><br>
+            <span style="font-size:12px;opacity:0.7">
+              ${new Date(n.created_at).toLocaleString()}
+            </span>
+          </div>
+        `;
+      });
+    }
+
+    loadNotifications();
+  </script>
+
+</body>
+</html>
